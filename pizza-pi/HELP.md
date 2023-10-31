@@ -27,7 +27,7 @@
 
 ## Submitting your solution
 
-You can submit your solution using the `exercism submit HelloWorld.php` command.
+You can submit your solution using the `exercism submit PizzaPi.php` command.
 This command will upload your solution to the Exercism website and print the solution page's URL.
 
 It's possible to submit an incomplete solution which allows you to:
@@ -40,6 +40,7 @@ It's possible to submit an incomplete solution which allows you to:
 If you'd like help solving the exercise, check the following pages:
 
 - The [PHP track's documentation](https://exercism.org/docs/tracks/php)
+- The [PHP track's programming category on the forum](https://forum.exercism.org/c/programming/php)
 - [Exercism's programming category on the forum](https://forum.exercism.org/c/programming/5)
 - The [Frequently Asked Questions](https://exercism.org/docs/using/faqs)
 
