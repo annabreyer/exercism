@@ -26,6 +26,29 @@ declare(strict_types = 1);
 
 function rebase(int $number, array $sequence, int $base)
 {
+    if (false === isValid($number, $sequence, $base)) {
+        return null;
+    }
+
+    if (10 === $number) {
+        $numberInTenBase = (int)implode("", $sequence);
+    }
+
+    if (false === isset($numberInTenBase)) {
+        $numberInTenBase = sequenceToTenBase($sequence, $number);
+    }
+
+    if (10 === $base) {
+        return str_split((string)$numberInTenBase, 1);
+    }
+
+    $sequenceInTargetBase = tenBaseToBase($numberInTenBase, $base);
+
+    return $sequenceInTargetBase;
+}
+
+function isValid(int $number, array $sequence, int $base): bool
+{
     if (
         empty($sequence)
         || 0 === $sequence[0]
@@ -33,111 +56,39 @@ function rebase(int $number, array $sequence, int $base)
         || $number < $sequence[0]
         || 1 >= $base
     ) {
-        return null;
+        return false;
     }
 
-    $wrongValues = array_filter($sequence, function($element) use ($number){
-        return $element < 0 ||$element >= $number;
+    $wrongValues = array_filter($sequence, function ($element) use ($number) {
+        return $element < 0 || $element >= $number;
     });
 
-    if (false === empty($wrongValues)){
-        return null;
+    if (false === empty($wrongValues)) {
+        return false;
     }
 
-    $sequenceLength = count($sequence);
-    $initialBase    = generateBaseSequence($number, $sequenceLength);
-
-    if (10 === $number) {
-        $numberInTenBase = (int)implode("", $sequence);
-    }
-
-    if (false === isset($numberInTenBase)) {
-        $numberInTenBase = sequenceToTenBase($sequence, $initialBase, $base);
-    }
-
-    if (10 === $base) {
-        return str_split((string)$numberInTenBase, 1);
-    }
-
-    $sequenceInTargetBase = tenBaseToBase($numberInTenBase, $base, $number, $sequenceLength);
-
-    return $sequenceInTargetBase;
+    return true;
 }
 
-function generateBaseSequence(int $base, int $sequenceLength): array
-{
-    $baseSequence = [];
-    $exponent     = 0;
-
-    while ($exponent < $sequenceLength) {
-        $baseSequence[] = pow($base, $exponent);
-        $exponent++;
-    }
-
-    return $baseSequence;
-}
-
-function sequenceToTenBase(array $sequence, array $baseSequence, int $base): int
+function sequenceToTenBase(array $sequence, int $base): int
 {
     $number = 0;
 
-    foreach (array_reverse($sequence) as $key => $element) {
-        $number += $element * $baseSequence[$key];
+    foreach (array_reverse($sequence) as $exponent => $element) {
+        $number += $element * pow($base, $exponent);
     }
 
     return $number;
 }
 
-function tenBaseToBase(int $numberInTenBase, int $targetBase, int $initialBase, int $sequenceLength): array
+function tenBaseToBase(int $numberInTenBase, int $targetBase): array
 {
-    $sequence           = [];
-    $necessaryExponents = getNecessaryExponent($initialBase, $sequenceLength, $targetBase, $numberInTenBase);
-    $newBase            = array_reverse(generateBaseSequence($targetBase, $necessaryExponents));
+    $sequence = [];
 
-    foreach ($newBase as $baseElement) {
-        $timesBase       = intval(floor($numberInTenBase / $baseElement));
-        $sequence[]      = $timesBase;
-        $numberInTenBase -= $timesBase * $baseElement;
-
-        if ($numberInTenBase < 0) {
-            break;
-        }
+    while ($numberInTenBase > 0) {
+        $sequence[]      = $numberInTenBase % $targetBase;
+        $numberInTenBase = intdiv($numberInTenBase, $targetBase);
     }
 
-    $sequence = trimZeros($sequence);
-
-    return $sequence;
-}
-
-function trimZeros(array $sequence)
-{
-    foreach ($sequence as $key => $value) {
-        if (0 !== $value) {
-            break;
-        }
-
-        unset($sequence[$key]);
-    }
-
-    return array_values($sequence);
-}
-
-//TODO find another way then the xponent to generate the base array, maybe substract or whatever, the current way does not work for all
-function getNecessaryExponent(int $number, int $sequenceLength, int $base, int $numberInTenBase)
-{
-    $necessaryExponents = (string)intval(ceil($numberInTenBase / $base));
-    $necessaryExponents = strlen($necessaryExponents);
-
-//    $necessaryExponents = $sequenceLength;
-//
-//    if ($number < $base) {
-//        $necessaryExponents = intval(ceil(pow($numberInTenBase, (1 / $base))));
-//    }
-//
-//    if ($base < $number) {
-//        $necessaryExponents = (string)intval(ceil($numberInTenBase / $base));
-//        $necessaryExponents = strlen($necessaryExponents);
-//    }
-
-    return $necessaryExponents;
+    return array_reverse($sequence);
 }
